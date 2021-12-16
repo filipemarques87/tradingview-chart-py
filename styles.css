@@ -1,0 +1,15 @@
+body, html {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+.chart-container {
+    /* padding-top: 16px; */
+    /* padding-left: 16px; */
+    height: 100%;
+    padding-right: 1em;
+}
