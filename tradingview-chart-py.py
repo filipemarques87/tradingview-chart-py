@@ -5,6 +5,17 @@ import datetime
 import pandas as pd
 import numpy as np
 
+import util
+
+
+COLOR_PALLET = ['rgba(69,114,167,255)',
+                'rgba(170,70,67,255)',
+                'rgba(137,165,78,255)',
+                'rgba(113,88,143,255)',
+                'rgba(65,152,175,255)',
+                'rgba(219,132,61,255)',
+                'rgba(147,169,207,255)']
+
 
 class TradingViewSeries:
     '''
@@ -12,9 +23,10 @@ class TradingViewSeries:
     I can be a candle stick series, a line series, volume series, ...
     '''
 
-    def __init__(self, series, type):
+    def __init__(self, series, type, **kwargs):
         self.series = series
         self.type = type
+        self.config = kwargs
 
     def serialize(self):
         return json.dumps(self, default=lambda o: o.__dict__)
@@ -40,15 +52,6 @@ class TradingViewFigure:
 
     def serialize(self):
         return [s.serialize() for s in self.series]
-
-
-@dataclass
-class ChartConfig:
-    ''' Chart configuration to pass to tradingview chart library '''
-    show_candlestick: bool = True
-    show_volume: bool = True
-    volume_colour_up: str = 'rgba(0, 150, 136, 0.8)'
-    volume_colour_down: str = 'rgba(255,82,82, 0.8)'
 
 
 class WebviewApi:
@@ -78,42 +81,35 @@ def plot_candlestick(np_ohlc_series, **kwargs):
     global current_figure_index
     global trading_view_figures
 
-    def _validate_data(ohlc_series):
-        ''' Validates the candle stick data '''
-        if not isinstance(ohlc_series, np.ndarray):
-            raise ValueError('Candle stick data must be a numpy ndarray')
-
-        ignore, ncolumns = ohlc_series.shape
-        if ncolumns < 5:
-            raise ValueError(
-                f'Expect 5 columns: time, open, high, low, close but got {ncolumns}')
-
-    def _convert_date(ohlc_series, date_format):
-        ''' Converts the column date to timestamp '''
-        if date_format is not None:
-            for row in ohlc_series:
-                row[0] = int(datetime.datetime.strptime(
-                    row[0], date_format).timestamp())
-        return ohlc_series
-
-    def _prepare_data_for_trading_view_library(ohlc_series):
-        ''' Prepare the data to be used in TradingView library '''
-        return [{
-            'time': row[0],
-            'open': row[1],
-            'high': row[2],
-            'low': row[3],
-            'close': row[4]}
-            for row in ohlc_series]
+    ohlc_series = util.convert_series(np_ohlc_series)
 
     if current_figure_index < len(trading_view_figures):
         raise ValueError(
             f'Cannot add a candle stick serie. Figure {current_figure_index} already exists')
 
-    ohlc_series = np_ohlc_series
-    _validate_data(ohlc_series)
-    ohlc_series = _convert_date(ohlc_series, kwargs['date_format'])
-    ohlc_series = _prepare_data_for_trading_view_library(ohlc_series)
+    # if not isinstance(ohlc_series, np.ndarray):
+    #     raise ValueError('Candle stick data must be a numpy ndarray')
+
+    ignore, ncolumns = np.shape(ohlc_series)
+    if ncolumns < 5:
+        raise ValueError(
+            f'Expect 5 columns: time, open, high, low, close but got {ncolumns}')
+
+    # converts the column date to timestamp
+    date_format = kwargs['date_format']
+    if date_format is not None:
+        for row in ohlc_series:
+            row[0] = int(datetime.datetime.strptime(
+                row[0], date_format).timestamp())
+
+    # prepare the data to be used in TradingView library
+    ohlc_series = [{
+        'time': row[0],
+        'open': row[1],
+        'high': row[2],
+        'low': row[3],
+        'close': row[4]}
+        for row in ohlc_series]
 
     trading_view_figures.append(TradingViewFigure(
         TradingViewSeries(ohlc_series, 'ohlc')))
@@ -124,34 +120,69 @@ def plot_line(np_line_series, **kwargs):
     global current_figure_index
     global trading_view_figures
 
-    def _validate_data(line_series, ohcl_series):
-        ''' Validates the candle stick data '''
-        if not isinstance(line_series, np.ndarray):
-            raise ValueError('Candle stick data must be a numpy ndarray')
+    if current_figure_index >= len(trading_view_figures):
+        raise ValueError(f'Figure {current_figure_index} does not exists')
 
-        if len(line_series.shape) != 1:
-            raise ValueError(
-                f'Expect 1 column but got {len(line_series.shape)}')
+    current_figure = trading_view_figures[current_figure_index]
+    line_series = util.convert_series(np_line_series)
+    ohlc_series = current_figure.series[0].series
 
-        if line_series.shape[0] != len(ohcl_series):
-            raise ValueError(
-                f'Line lenght and candle stick length are different: {line_series.shape[0]} != {ohcl_series.shape[0]}')
+    # if not isinstance(line_series, np.ndarray):
+    #     raise ValueError('Candle stick data must be a numpy ndarray')
 
-    def _prepare_data_for_trading_view_library(line_series, ohlc_series):
-        return [{'time': row[0]['time'], 'value': row[1]}
-                for row in zip(ohlc_series, line_series) if not np.isnan(row[1])]
+    if len(np.shape(line_series)) != 1:
+        raise ValueError(
+            f'Expect 1 column but got {len(line_series.shape)}')
+
+    if len(line_series) != len(ohlc_series):
+        raise ValueError(
+            f'Line lenght and candle stick length are different: {len(line_series)} != {len(ohlc_series)}')
+
+    line_series = [{'time': row[0]['time'], 'value': row[1]}
+                   for row in zip(ohlc_series, line_series) if not np.isnan(row[1])]
+
+    # get correct line color if not set
+    if 'color' not in kwargs:
+        total_lines = len(
+            [s for s in current_figure.series if s.type == 'line'])
+        kwargs['color'] = COLOR_PALLET[total_lines % len(COLOR_PALLET)]
+
+    kwargs['index'] = total_lines
+    current_figure.add_series(TradingViewSeries(line_series, 'line', **kwargs))
+
+
+def plot_volume(np_volume_series, **kwargs):
+    ''' Adds volume into candlestick chart '''
+    global current_figure_index
+    global trading_view_figures
 
     if current_figure_index >= len(trading_view_figures):
         raise ValueError(f'Figure {current_figure_index} does not exists')
 
     current_figure = trading_view_figures[current_figure_index]
-    line_series = np_line_series
+    volume_series = util.convert_series(np_volume_series)
     ohlc_series = current_figure.series[0].series
-    _validate_data(line_series, ohlc_series)
-    line_series = _prepare_data_for_trading_view_library(
-        line_series, ohlc_series)
 
-    current_figure.add_series(TradingViewSeries(line_series, 'line'))
+    # if not isinstance(volume_series, np.ndarray):
+    #     raise ValueError('Candle stick data must be a numpy ndarray')
+
+    if len(np.shape(volume_series)) != 1:
+        raise ValueError(
+            f'Expect 1 column but got {len(np.shape(volume_series))}')
+
+    if len(volume_series) != len(ohlc_series):
+        raise ValueError(
+            f'Line lenght and candle stick length are different: {len(volume_series)} != {len(ohlc_series)}')
+
+    up_color = 'rgba(0, 150, 136, 0.8)' if 'color_up' not in kwargs else kwargs[
+        'color_up']
+    down_color = 'rgba(255,82,82, 0.8)' if 'color_down' not in kwargs else kwargs[
+        'color_down']
+    volume_series = [{'time': row[0]['time'], 'value': row[1], 'color': up_color if row[0]['open'] < row[0]['close'] else down_color}
+                     for row in zip(ohlc_series, volume_series) if not np.isnan(row[1])]
+
+    current_figure.add_series(TradingViewSeries(
+        volume_series, 'volume', **kwargs))
 
 
 def show():
@@ -195,16 +226,18 @@ if __name__ == '__main__':
 
     sma20 = ohlc['close'].rolling(window=20).mean()
     sma50 = ohlc['close'].rolling(window=50).mean()
+    sma100 = ohlc['close'].rolling(window=100).mean()
 
-    plot_candlestick(ohlc.values, date_format='%b %d %Y')
-    plot_line(sma20.values)
-    plot_line(sma50.values)
-    
+    plot_candlestick(ohlc, date_format='%b %d %Y')
+    plot_line(sma20, name='SMA 20')
+    plot_line(sma50, name='SMA 50')
+    plot_line(sma100, name='SMA 100')
+    plot_volume(ohlc['volume'])
 
-    figure()
-    plot_candlestick(ohlc.values, date_format='%b %d %Y')
-    plot_line(sma20.values)
-    plot_line(sma50.values)
+    # figure()
+    # plot_candlestick(ohlc.values, date_format='%b %d %Y')
+    # plot_line(sma20.values)
+    # plot_line(sma50.values)
     show()
 
     #plot(ohlc.values, sma20)

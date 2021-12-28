@@ -31,14 +31,48 @@
 
     // creates line chart object
     const createLineChart = (chart, config) => {
-        return chart.addLineSeries({
-            color: 'rgba(4, 111, 232, 1)',
+        const lineChart = chart.addLineSeries({
+            color: config.color,
             lineWidth: 2,
             priceLineVisible: false, //----------
             baseLineVisible: false,
             crosshairMarkerVisible: false,
             lastValueVisible: false
         });
+
+        const setLegendText = (legend, priceValue) => {
+            let val = 'n/a';
+            if (priceValue !== undefined) {
+                val = (Math.round(priceValue * 100) / 100).toFixed(2);
+            }
+            legend.innerHTML = `
+                <div>
+                    <p>
+                        ${config.name}
+                        <span style="color:${config.color}">${val}</span>
+                    </p>
+                </div>`;
+        }
+
+        const createLegentDiv = (lineIndex) => {
+            var legend = document.createElement('div');
+            legend.className = 'line-legend';
+            legend.style.display = 'block';
+            legend.style.left = 3 + 'px';
+            legend.style.top = (1.5 * lineIndex) + 'em';
+            return legend;
+        };
+
+        const legend = createLegentDiv(config.index)
+        chartContainer.appendChild(legend);
+
+        setLegendText(lineChart)
+
+        chart.subscribeCrosshairMove((param) => {
+            setLegendText(legend, param.seriesPrices.get(lineChart));
+        });
+
+        return lineChart;
     };
 
     // creates volume chart object
@@ -55,19 +89,6 @@
             },
         });
     };
-
-    const extractVolumeData = (data, config) => {
-        return data.map((d) => {
-            return {
-                'time': d.time,
-                'value': d.volume,
-                'color': d.open < d.close
-                    ? config.volume_colour_up
-                    : config.volume_colour_down
-            }
-        });
-    };
-
 
     const createChartSeries = (type, chart, config) => {
         if (type === 'ohlc') {
@@ -89,7 +110,7 @@
                 response.series
                     .map(s => JSON.parse(s))
                     .forEach(s => {
-                        createChartSeries(s.type, chart, config)
+                        createChartSeries(s.type, chart, s.config)
                             .setData(s.series);
                     });
             });
