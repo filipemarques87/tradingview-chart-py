@@ -11,7 +11,7 @@ body {
     /* padding-top: 16px; */
     /* padding-left: 16px; */
     height: 100%;
-    padding-right: 1em;
+    /*padding-right: 1em;*/
     z-index: -1;
 }
 
@@ -25,4 +25,7 @@ body {
 	text-align: left;
 	z-index: 1000;
 	pointer-events: none;
+
+	display: 'block';
+	left: 3px;
 }

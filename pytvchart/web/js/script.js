@@ -7,8 +7,26 @@
         const chart = LightweightCharts.createChart(chartContainer, {
             width: 600,
             height: 400,
+            layout: {
+                backgroundColor: config.backgroundColor,
+                textColor: config.textColor,
+            },
+            grid: {
+                vertLines: {
+                    color: config.gridColor,
+                },
+                horzLines: {
+                    color: config.gridColor,
+                },
+            },
             crosshair: {
-                mode: LightweightCharts.CrosshairMode.Normal
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: config.borderColor,
+            },
+            timeScale: {
+                borderColor: config.borderColor,
             }
         });
 
@@ -26,31 +44,30 @@
 
     // creates candle stick chart object
     const createCandleStickChart = (chart, config) => {
-        return chart.addCandlestickSeries();
+        return chart.addCandlestickSeries({
+            upColor: config.up_colour,
+            downColor: config.down_colour,
+            wickUpColor: config.wick_up_colour,
+            wickDownColor: config.wick_down_colour,
+        });
     };
 
     // creates line chart object
     const createLineChart = (chart, config) => {
-        const lineChart = chart.addLineSeries({
+        return chart.addLineSeries({
             color: config.colour,
             lineWidth: 2,
             priceLineVisible: false,
             baseLineVisible: false,
             crosshairMarkerVisible: false,
-            lastValueVisible: false
+            lastValueVisible: false,
+            test: 'filipe'
         });
-
-        // console.log(config.show_legend)
-
-
-
-        return lineChart;
     };
 
     // creates volume chart object
     const createVolumeChart = (chart, config) => {
         return chart.addHistogramSeries({
-            // color: '#26a69a',
             priceFormat: {
                 type: 'volume',
             },
@@ -73,10 +90,12 @@
         throw new TypeError('Type not supported')
     }
 
-    const addLegentToChart = (chart, lineChart, config) => {
+    const addLegentToChart = (chart, config, lineChart, subChartConfig) => {
+        console.log(lineChart)
+        const setLegendText = (legend, priceValue, lineChart2) => {
 
-        const setLegendText = (legend, priceValue) => {
             let val = 'n/a';
+            const myColour = lineChart['qe']['ki']['color'];
             if (priceValue !== undefined) {
                 if (isNaN(priceValue)) {
                     keys = Object.keys(priceValue);
@@ -91,55 +110,48 @@
             legend.innerHTML = `
                 <div>
                     <p>
-                        ${config.name}
-                        <span style="color:${config.colour}">${val}</span>
+                        <span style="color:${config.textColor}">${subChartConfig.name}</span>
+                        <span style="color:${myColour}">${val}</span>
                     </p>
                 </div>`;
+                //<span style="color:${subChartConfig.colour}">${val}</span>
         }
 
         const createLegentDiv = (lineIndex) => {
             var legend = document.createElement('div');
             legend.className = 'line-legend';
-            legend.style.display = 'block';
-            legend.style.left = 3 + 'px';
             legend.style.top = (1.5 * lineIndex) + 'em';
             return legend;
         };
 
-        const legend = createLegentDiv(config.legend_index)
+        const legend = createLegentDiv(subChartConfig.legend_index)
         chartContainer.appendChild(legend);
 
         setLegendText(lineChart)
 
         chart.subscribeCrosshairMove((param) => {
-            setLegendText(legend, param.seriesPrices.get(lineChart));
+            setLegendText(legend, param.seriesPrices.get(lineChart), lineChart);
         });
-
-
     };
 
     window.addEventListener('pywebviewready', () => {
         pywebview.api.request_data()
             .then((response) => {
-                const config = {};//JSON.parse(response.config);
+                const config = JSON.parse(response.config);
                 const chart = createChart(config);
-
-                //console.log(response)
 
                 response.series
                     .map(s => JSON.parse(s))
-                    .forEach(s => {
+                    .forEach((s, i) => {
                         const subChart = createChartSeries(s.type, chart, s.config)
                         subChart.setData(s.series);
                         if (s.config.show_legend) {
-                            //addLegentToChart(chart, subChart, s.config);
+                            addLegentToChart(chart, config, subChart, s.config);
                         }
 
-                        if (s.type === 'ohlc') {
-                            
-                                subChart.setMarkers(response.markers
-                                .map(s => JSON.parse(s)));
-                            
+                        // adds the markers to the first chart
+                        if (i === 0) {
+                            subChart.setMarkers(response.events.map(s => JSON.parse(s)));
                         }
                     });
             });
