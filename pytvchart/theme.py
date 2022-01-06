@@ -1,54 +1,52 @@
-
-
-TVCHART_THEME = {
+THEMES = {
     'light': {
-        'backgroundColor': '#000000',
-        'textColor': 'rgba(255, 255, 255, 0.9)',
-        'borderColor': 'rgba(197, 203, 206, 0.8)',
-        'gridColor': 'rgba(197, 203, 206, 0.5)',
+        'backgroundColor': '#ffffff',
+        'textColor': '#191919',
+        'borderColor': '#c5cbcecc',
+        'gridColor': '#c5cbce80',
         'candlestickChart': {
-            'up_colour': 'rgb(38,166,154)',
-            'down_colour': 'rgb(255,82,82)',
-            'wick_up_colour': 'rgb(38,166,154)',
-            'wick_down_colour': 'rgb(255,82,82)',
+            'up_colour': '#26a69a',
+            'down_colour': '#ff5252',
+            'wick_up_colour': '#26a69a',
+            'wick_down_colour': '#ff5252',
         },
         'line_chart': {
-            'colour_pallet': ['rgba(69,114,167,255)',
-                              'rgba(170,70,67,255)',
-                              'rgba(137,165,78,255)',
-                              'rgba(113,88,143,255)',
-                              'rgba(65,152,175,255)',
-                              'rgba(219,132,61,255)',
-                              'rgba(147,169,207,255)']
+            'colour_pallet': ['#4572a7',
+                              '#aa4643',
+                              '#89a54e',
+                              '#71588f',
+                              '#4198af',
+                              '#db843d',
+                              '#93a9cf']
         },
         'volume_chart': {
-            'colour_up':  'rgba(0, 150, 136, 0.8)',
-            'colour_down':  'rgba(255,82,82, 0.8)'
+            'colour_up':  '#009688cc',
+            'colour_down':  '#ff5252cc'
         }
     },
     'dark': {
         'backgroundColor': '#000000',
-        'textColor': 'rgba(255, 255, 255, 0.9)',
-        'borderColor': 'rgba(197, 203, 206, 0.8)',
-        'gridColor': 'rgba(197, 203, 206, 0.5)',
+        'textColor': '#ffffffe6',
+        'borderColor': '#c5cbcecc',
+        'gridColor': '#c5cbce80',
         'candlestickChart': {
-            'up_colour': 'rgb(38,166,154)',
-            'down_colour': 'rgb(255,82,82)',
-            'wick_up_colour': 'rgb(38,166,154)',
-            'wick_down_colour': 'rgb(255,82,82)',
+            'up_colour': '#26a69a',
+            'down_colour': '#ff5252',
+            'wick_up_colour': '#26a69a',
+            'wick_down_colour': '#ff5252',
         },
         'line_chart': {
-            'colour_pallet': ['rgba(69,114,167,255)',
-                              'rgba(170,70,67,255)',
-                              'rgba(137,165,78,255)',
-                              'rgba(113,88,143,255)',
-                              'rgba(65,152,175,255)',
-                              'rgba(219,132,61,255)',
-                              'rgba(147,169,207,255)']
+            'colour_pallet': ['#fa8174',
+                              '#bfbbd9',
+                              '#80b0d1',
+                              '#fdb462',
+                              '#b3de69',
+                              '#feec6e',
+                              '#fcb361']
         },
         'volume_chart': {
-            'colour_up':  'rgba(0, 150, 136, 0.8)',
-            'colour_down':  'rgba(255,82,82, 0.8)'
+            'colour_up':  '#009688cc',
+            'colour_down':  '#ff5252cc'
         }
 
     }

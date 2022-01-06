@@ -3,30 +3,32 @@
     const chartContainer = document.getElementById('chart-container');
 
     // creates the main chart object
-    const createChart = (config) => {
+    const createChart = (mainConfig) => {
         const chart = LightweightCharts.createChart(chartContainer, {
             width: 600,
             height: 400,
             layout: {
-                backgroundColor: config.backgroundColor,
-                textColor: config.textColor,
+                background: {
+                    color: mainConfig.backgroundColor,
+                },
+                textColor: mainConfig.textColor,
             },
             grid: {
                 vertLines: {
-                    color: config.gridColor,
+                    color: mainConfig.gridColor,
                 },
                 horzLines: {
-                    color: config.gridColor,
+                    color: mainConfig.gridColor,
                 },
             },
             crosshair: {
                 mode: LightweightCharts.CrosshairMode.Normal,
             },
             rightPriceScale: {
-                borderColor: config.borderColor,
+                borderColor: mainConfig.borderColor,
             },
             timeScale: {
-                borderColor: config.borderColor,
+                borderColor: mainConfig.borderColor,
             }
         });
 
@@ -61,7 +63,6 @@
             baseLineVisible: false,
             crosshairMarkerVisible: false,
             lastValueVisible: false,
-            test: 'filipe'
         });
     };
 
@@ -90,13 +91,12 @@
         throw new TypeError('Type not supported')
     }
 
-    const addLegentToChart = (chart, config, lineChart, subChartConfig) => {
-        console.log(lineChart)
-        const setLegendText = (legend, priceValue, lineChart2) => {
-
+    const addLegentToChart = (chart, mainConfig, lineChart, chartConfig) => {
+        const setLegendText = (legend, priceValue) => {
             let val = 'n/a';
-            const myColour = lineChart['qe']['ki']['color'];
+            const myColour = chartConfig.colour || mainConfig.textColor;
             if (priceValue !== undefined) {
+                // candlestick case
                 if (isNaN(priceValue)) {
                     keys = Object.keys(priceValue);
                     nextKeys = keys.slice(1);
@@ -104,17 +104,17 @@
                         (p, c) => `${p}, ${c}: ${priceValue[c]}`,
                         `${keys[0]}: ${priceValue[keys[0]]}`)
                 } else {
+                    // line, volume case
                     val = (Math.round(priceValue * 100) / 100).toFixed(2);
                 }
             }
             legend.innerHTML = `
                 <div>
                     <p>
-                        <span style="color:${config.textColor}">${subChartConfig.name}</span>
+                        <span style="color:${mainConfig.textColor}">${chartConfig.name}</span>
                         <span style="color:${myColour}">${val}</span>
                     </p>
                 </div>`;
-                //<span style="color:${subChartConfig.colour}">${val}</span>
         }
 
         const createLegentDiv = (lineIndex) => {
@@ -124,21 +124,21 @@
             return legend;
         };
 
-        const legend = createLegentDiv(subChartConfig.legend_index)
+        const legend = createLegentDiv(chartConfig.legend_index)
         chartContainer.appendChild(legend);
 
-        setLegendText(lineChart)
+        setLegendText()
 
         chart.subscribeCrosshairMove((param) => {
-            setLegendText(legend, param.seriesPrices.get(lineChart), lineChart);
+            setLegendText(legend, param.seriesPrices.get(lineChart));
         });
     };
 
     window.addEventListener('pywebviewready', () => {
         pywebview.api.request_data()
             .then((response) => {
-                const config = JSON.parse(response.config);
-                const chart = createChart(config);
+                const mainConfig = JSON.parse(response.config);
+                const chart = createChart(mainConfig);
 
                 response.series
                     .map(s => JSON.parse(s))
@@ -146,7 +146,7 @@
                         const subChart = createChartSeries(s.type, chart, s.config)
                         subChart.setData(s.series);
                         if (s.config.show_legend) {
-                            addLegentToChart(chart, config, subChart, s.config);
+                            addLegentToChart(chart, mainConfig, subChart, s.config);
                         }
 
                         // adds the markers to the first chart

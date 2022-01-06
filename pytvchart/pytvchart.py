@@ -1,28 +1,16 @@
 import datetime
 import json
 import numpy as np
+import pytz
 import uuid
 import webview
 
 import pytvchart.util as util
-from pytvchart.theme import TVCHART_THEME
-
-
-# colour available to switch between chart lines
-# COLOR_PALLET = ['rgba(69,114,167,255)',
-#                 'rgba(170,70,67,255)',
-#                 'rgba(137,165,78,255)',
-#                 'rgba(113,88,143,255)',
-#                 'rgba(65,152,175,255)',
-#                 'rgba(219,132,61,255)',
-#                 'rgba(147,169,207,255)']
+from pytvchart.theme import THEMES
 
 
 class TradingViewEvent:
-    '''
-    This class holds informations for a single series to be shown in the figure.
-    I can be a candle stick series, a line series, volume series, ...
-    '''
+    """ Holds a single event to be shown on the figure """
 
     def __init__(self, time, text, position, shape, color):
         self.time = time
@@ -36,10 +24,7 @@ class TradingViewEvent:
 
 
 class TradingViewSeries:
-    '''
-    This class holds informations for a single series to be shown in the figure.
-    I can be a candle stick series, a line series, volume series, ...
-    '''
+    """ Holds a single series to be shown on the figure """
 
     def __init__(self, series, type, **kwargs):
         self.series = series
@@ -51,14 +36,7 @@ class TradingViewSeries:
 
 
 class TradingViewFigure:
-    '''
-    This class holds the information related with on figure.
-    A figure is composed by a candlestick series extra series like volume,
-    single line, ....
-    Also holds the configuration for those series.
-
-    First serie correspond always to a candle stick series
-    '''
+    """ This class holds the information related with on figure """
 
     def __init__(self, title='', theme='light'):
         self.series = []
@@ -66,14 +44,14 @@ class TradingViewFigure:
         self.title = title
         self.theme = theme
         self.config = {
-            'backgroundColor': TVCHART_THEME[theme]['backgroundColor'],
-            'textColor': TVCHART_THEME[theme]['textColor'],
-            'borderColor': TVCHART_THEME[theme]['borderColor'],
-            'gridColor': TVCHART_THEME[theme]['gridColor']
+            'backgroundColor': THEMES[theme]['backgroundColor'],
+            'textColor': THEMES[theme]['textColor'],
+            'borderColor': THEMES[theme]['borderColor'],
+            'gridColor': THEMES[theme]['gridColor']
         }
 
     def add_series(self, series):
-        ''' Adds a new series to this figure '''
+        """ Adds a new series to this figure """
         if series.type == 'ohlc':
             # only 1 candlestick chart is allowed per figure
             result = list(filter(lambda x: x.type == 'ohlc', self.series))
@@ -85,10 +63,12 @@ class TradingViewFigure:
             self.series.append(series)
 
     def add_event(self, event):
+        """ Adds a single event to this figure """
         self.events = sorted(
             self.events + [event], key=lambda row: row.time)
 
     def serialize(self):
+        """ Serializes the this figure to be sent to tradingview library"""
         return {
             'config': json.dumps(self.config),
             'series': [s.serialize() for s in self.series],
@@ -97,54 +77,26 @@ class TradingViewFigure:
 
 
 class WebviewApi:
-    """
-    Class used to comunicate between python and webview. Every figure will have
-    an intance of this class
-    """
+    """ Serves as a bridge between python code and tradingview library """
 
     def __init__(self, figure):
-        """
-        Creates a new WebviewApi instance
-
-        Parameters
-        ----------
-        figure: TradingViewFigure
-            The figure which is associated with this instance
-        """
         self.figure = figure
 
     def request_data(self):
-        """
-        This method is called from JS code and will request all data to be
-        shown on the figure.
-
-        Returns
-        -------
-        out: list
-            Returns a list containing all series of the figure. Every series
-            is a JSON object serialized into a string, so to be used, this
-            string must be parsed into JSON before in the JS side
-        """
+        """ Returns serialized data to tradingview library """
         return self.figure.serialize()
 
 
-def _create_new_figure(id=None, title=''):
-    """
-    Creates a new figure.
-
-    Parameters
-    ----------
-    id: str, optional
-        Id of the figure. If it is not provided it will be generated one
-    title: str
-        Title of the figure to be created
-    """
+def _create_new_figure(id=None, title='', theme='light'):
+    """ Creates a new figure. """
     global tvchart_figures
     global current_tvchart_figure
 
     id = id or str(uuid.uuid4())
-    current_tvchart_figure = TradingViewFigure(title=title)
+
+    current_tvchart_figure = TradingViewFigure(title=title, theme=theme)
     tvchart_figures[id] = current_tvchart_figure
+    return id
 
 
 def plot_candlestick(
@@ -190,9 +142,6 @@ def plot_candlestick(
 
     if current_tvchart_figure is None:
         _create_new_figure()
-    #if current_tvchart_figure is None:
-    #    raise ValueError(f'Cannot add a candle stick serie. "\
-    #            "Figure {current_tvchart_figure} already exists')
 
     ohlc_series = util.convert_series(np_ohlc_series)
     ignore, ncolumns = np.shape(ohlc_series)
@@ -204,7 +153,7 @@ def plot_candlestick(
     if date_format is not None:
         for row in ohlc_series:
             row[0] = int(datetime.datetime.strptime(
-                row[0], date_format).timestamp())
+                row[0], date_format).replace(tzinfo=pytz.utc).timestamp())
 
     # prepare the data to be used in TradingView library
     ohlc_series = [{
@@ -215,7 +164,7 @@ def plot_candlestick(
         'close': row[4]}
         for row in ohlc_series]
 
-    cs_theme = TVCHART_THEME[current_tvchart_figure.theme]['candlestickChart']
+    cs_theme = THEMES[current_tvchart_figure.theme]['candlestickChart']
 
     tv_series = TradingViewSeries(
         ohlc_series, 'ohlc', name=name,
@@ -260,7 +209,6 @@ def plot_line(
     global current_tvchart_figure
 
     if current_tvchart_figure is None:
-        #raise ValueError(f'Figure {current_tvchart_figure} does not exists')
         _create_new_figure()
 
     line_series = util.convert_series(np_line_series)
@@ -279,7 +227,7 @@ def plot_line(
         for row in zip(ohlc_series, line_series) if not np.isnan(row[1])]
 
     # get correct line color if not set
-    cs_theme = TVCHART_THEME[current_tvchart_figure.theme]['line_chart']
+    cs_theme = THEMES[current_tvchart_figure.theme]['line_chart']
     colour_pallet = cs_theme['colour_pallet']
     if colour is None:
         index = len(
@@ -331,7 +279,6 @@ def plot_volume(np_volume_series, name='Vol', show_legend=True):
     global current_tvchart_figure
 
     if current_tvchart_figure is None:
-        #raise ValueError(f'Figure {current_tvchart_figure} does not exists')
         _create_new_figure()
 
     volume_series = util.convert_series(np_volume_series)
@@ -344,7 +291,7 @@ def plot_volume(np_volume_series, name='Vol', show_legend=True):
         raise ValueError(f'Line lenght and candle stick length are different:"\
             "{len(volume_series)} != {len(ohlc_series)}')
 
-    cs_theme = TVCHART_THEME[current_tvchart_figure.theme]['volume_chart']
+    cs_theme = THEMES[current_tvchart_figure.theme]['volume_chart']
     colour_up = cs_theme['colour_up']
     colour_down = cs_theme['colour_down']
 
@@ -378,8 +325,8 @@ def plot_event(
         Time when the event occured. Can be a unix timestamp or could a date
         string. If it is a date string, a date format must be provided
     date_format: str, optional
-        Date format to parse the time parameter. If it is not provided the time
-        must be a unix timestamp
+        Date format to parse the time parameter. If it is not provided the
+        date format from candlestick chart is used
     position: str
         Position of the text in the chart. The possible values are: aboveBar,
         belowBar or inBar
@@ -417,9 +364,9 @@ def plot_event(
         position, color, shape, text = \
             'belowBar',  '#2196F3', 'arrowUp', f'Buy @ {text}'
 
-    #current_figure = tvchart_figures[current_tvchart_figure]
-    #date_format = current_figure.series[0].config['date_format']
-
+    ohcl_series = [series for series in current_tvchart_figure.series
+                   if series.type == 'ohlc'][0]
+    date_format = date_format or ohcl_series.config['date_format']
     if date_format is not None:
         time = int(datetime.datetime.strptime(time, date_format).timestamp())
 
@@ -465,7 +412,8 @@ def figure(id=None, title='', theme='light'):
     global current_tvchart_figure
 
     if id is None or id not in tvchart_figures:
-        _create_new_figure(id=id, title=title, theme=theme)
+        # the new figure is added inside of the function
+        id = _create_new_figure(id=id, title=title, theme=theme)
     else:
         current_tvchart_figure = tvchart_figures[id]
 
