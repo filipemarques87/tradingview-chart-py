@@ -108,6 +108,7 @@
                     val = (Math.round(priceValue * 100) / 100).toFixed(2);
                 }
             }
+
             legend.innerHTML = `
                 <div>
                     <p>
@@ -127,7 +128,7 @@
         const legend = createLegentDiv(chartConfig.legend_index)
         chartContainer.appendChild(legend);
 
-        setLegendText()
+        setLegendText(legend)
 
         chart.subscribeCrosshairMove((param) => {
             setLegendText(legend, param.seriesPrices.get(lineChart));
