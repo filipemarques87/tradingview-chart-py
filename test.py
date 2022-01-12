@@ -46,5 +46,10 @@ if __name__ == '__main__':
     tvc.plot_candlestick(ohlc.values, date_format='%b %d %Y')
     tvc.plot_line(sma20.values)
     tvc.plot_line(sma50.values)
+    tvc.plot_event('Dec 02 2011', '314', type='sell',size=3)
+    tvc.plot_event('Sep 14 2011', '366', type='buy')
+    tvc.plot_event('Sep 07 2011', 'outras cenas')
+    tvc.plot_event('Jan 04 2010', 'outras cenas')
+
 
     tvc.show()

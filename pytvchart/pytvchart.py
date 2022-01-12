@@ -12,12 +12,13 @@ from pytvchart.theme import THEMES
 class TradingViewEvent:
     """ Holds a single event to be shown on the figure """
 
-    def __init__(self, time, text, position, shape, color):
+    def __init__(self, time, text, position, shape, color, size):
         self.time = time
         self.text = text
         self.position = position
         self.shape = shape
         self.color = color
+        self.size = size
 
     def serialize(self):
         return json.dumps(self, default=lambda o: o.__dict__)
@@ -118,18 +119,6 @@ def plot_candlestick(
         done but this implies that the time is a unix timestamp
     show_legend: bool, default: True
         True to show the legend of this timeseries, false otherwise.
-    up_color: str
-        color of the candle when the close price is greater than the open
-        price.
-    down_color: str
-        color of the candle when the open price is greater than the close
-        price.
-    wick_up_color: str
-        color of the candle wick when the close price is greater than the open
-        price.
-    wick_down_color: str
-        color of the candle wick when the open price is greater than the close
-        price.
 
     Raises
     ------
@@ -170,9 +159,7 @@ def plot_candlestick(
         ohlc_series, 'ohlc', name=name,
         show_legend=show_legend, legend_index=0, date_format=date_format,
         up_color=cs_theme['up_color'],
-        down_color=cs_theme['down_color'],
-        wick_up_color=cs_theme['wick_up_color'],
-        wick_down_color=cs_theme['wick_down_color'])
+        down_color=cs_theme['down_color'])
 
     current_tvchart_figure.add_series(tv_series)
 
@@ -313,7 +300,7 @@ def plot_volume(np_volume_series, name='Vol', show_legend=True):
 
 def plot_event(
     time, text, date_format=None, type=None, position='aboveBar',
-    shape='arrowDown', color='#000'
+    shape='arrowDown', color=None, size=1
 ):
     """
     Plots an event. An event is a marker in the chart with some description.
@@ -342,12 +329,17 @@ def plot_event(
         value is but then the following configuration is used:
         position=aboveBar, shape=arrowUp, color=#2196F3 and text start with
         'Buy @'
+    size: int, default: 1
+        Size of the event marker
 
     Raises
     ------
     ValueError
         If either the position, shape or type are invalid
     """
+    global tvchart_figures
+    global current_tvchart_figure
+
     if position not in (None, '', 'aboveBar', 'belowBar', 'inBar'):
         raise ValueError(f'Invalid position {position}')
 
@@ -357,12 +349,15 @@ def plot_event(
     if type not in (None, '', 'sell', 'buy'):
         raise ValueError(f'Invalid type {type}')
 
+    cs_theme = THEMES[current_tvchart_figure.theme]['event']
+    color = color or cs_theme['default_color']
+
     if type == 'sell':
         position, color, shape, text = \
-            'aboveBar',  '#e91e63', 'arrowDown', f'Sell @ {text}'
+            'aboveBar',  cs_theme['sell_color'], 'arrowDown', f'Sell @ {text}'
     elif type == 'buy':
         position, color, shape, text = \
-            'belowBar',  '#2196F3', 'arrowUp', f'Buy @ {text}'
+            'belowBar',  cs_theme['buy_color'], 'arrowUp', f'Buy @ {text}'
 
     ohcl_series = [series for series in current_tvchart_figure.series
                    if series.type == 'ohlc'][0]
@@ -370,7 +365,7 @@ def plot_event(
     if date_format is not None:
         time = int(datetime.datetime.strptime(time, date_format).timestamp())
 
-    tv_event = TradingViewEvent(time, text, position, shape, color)
+    tv_event = TradingViewEvent(time, text, position, shape, color, size)
     current_tvchart_figure.add_event(tv_event)
 
 
@@ -386,7 +381,7 @@ def show():
         webview_api = WebviewApi(figure)
         window = webview.create_window(title, 'pytvchart/web/index.html',
                                        js_api=webview_api)
-    webview.start(debug=False)
+    webview.start(debug=True)
 
 
 def figure(id=None, title='', theme='light'):

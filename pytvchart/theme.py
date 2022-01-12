@@ -5,23 +5,26 @@ THEMES = {
         'borderColor': '#c5cbcecc',
         'gridColor': '#c5cbce80',
         'candlestickChart': {
-            'up_colour': '#26a69a',
-            'down_colour': '#ff5252',
-            'wick_up_colour': '#26a69a',
-            'wick_down_colour': '#ff5252',
+            'up_color': '#26a69a',
+            'down_color': '#ff5252'
         },
         'line_chart': {
-            'colour_pallet': ['#4572a7',
-                              '#aa4643',
-                              '#89a54e',
-                              '#71588f',
-                              '#4198af',
-                              '#db843d',
-                              '#93a9cf']
+            'color_pallet': ['#4572a7',
+                             '#aa4643',
+                             '#89a54e',
+                             '#71588f',
+                             '#4198af',
+                             '#db843d',
+                             '#93a9cf']
         },
         'volume_chart': {
-            'colour_up':  '#009688cc',
-            'colour_down':  '#ff5252cc'
+            'color_up':  '#009688cc',
+            'color_down':  '#ff5252cc'
+        },
+        'event': {
+            'default_color': '#191919',
+            'sell_color': '#ff5252',
+            'buy_color': '#26a69a'
         }
     },
     'dark': {
@@ -30,24 +33,26 @@ THEMES = {
         'borderColor': '#c5cbcecc',
         'gridColor': '#c5cbce80',
         'candlestickChart': {
-            'up_colour': '#26a69a',
-            'down_colour': '#ff5252',
-            'wick_up_colour': '#26a69a',
-            'wick_down_colour': '#ff5252',
+            'up_color': '#26a69a',
+            'down_color': '#ff5252'
         },
         'line_chart': {
-            'colour_pallet': ['#fa8174',
-                              '#bfbbd9',
-                              '#80b0d1',
-                              '#fdb462',
-                              '#b3de69',
-                              '#feec6e',
-                              '#fcb361']
+            'color_pallet': ['#fa8174',
+                             '#bfbbd9',
+                             '#80b0d1',
+                             '#fdb462',
+                             '#b3de69',
+                             '#feec6e',
+                             '#fcb361']
         },
         'volume_chart': {
-            'colour_up':  '#009688cc',
-            'colour_down':  '#ff5252cc'
+            'color_up':  '#009688cc',
+            'color_down':  '#ff5252cc'
+        },
+        'event': {
+            'default_color': '#ffffffe6',
+            'sell_color': '#ff5252',
+            'buy_color': '#26a69a'
         }
-
     }
 }

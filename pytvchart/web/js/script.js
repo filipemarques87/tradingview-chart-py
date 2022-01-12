@@ -9,26 +9,26 @@
             height: 400,
             layout: {
                 background: {
-                    color: mainConfig.backgroundColor,
+                    color: mainConfig["backgroundColor"],
                 },
-                textColor: mainConfig.textColor,
+                textColor: mainConfig["textColor"],
             },
             grid: {
                 vertLines: {
-                    color: mainConfig.gridColor,
+                    color: mainConfig["gridColor"],
                 },
                 horzLines: {
-                    color: mainConfig.gridColor,
+                    color: mainConfig["gridColor"],
                 },
             },
             crosshair: {
                 mode: LightweightCharts.CrosshairMode.Normal,
             },
             rightPriceScale: {
-                borderColor: mainConfig.borderColor,
+                borderColor: mainConfig["borderColor"],
             },
             timeScale: {
-                borderColor: mainConfig.borderColor,
+                borderColor: mainConfig["borderColor"],
             }
         });
 
@@ -47,17 +47,19 @@
     // creates candle stick chart object
     const createCandleStickChart = (chart, config) => {
         return chart.addCandlestickSeries({
-            upColor: config.up_colour,
-            downColor: config.down_colour,
-            wickUpColor: config.wick_up_colour,
-            wickDownColor: config.wick_down_colour,
+            upColor: config["up_color"],
+            downColor: config["down_color"],
+            wickUpColor: config["up_color"],
+            wickDownColor: config["down_color"],
+            borderUpColor: config["up_color"],
+            borderDownColor: config["down_color"],
         });
     };
 
     // creates line chart object
     const createLineChart = (chart, config) => {
         return chart.addLineSeries({
-            color: config.colour,
+            color: config["color"],
             lineWidth: 2,
             priceLineVisible: false,
             baseLineVisible: false,
@@ -94,7 +96,7 @@
     const addLegentToChart = (chart, mainConfig, lineChart, chartConfig) => {
         const setLegendText = (legend, priceValue) => {
             let val = 'n/a';
-            const myColour = chartConfig.colour || mainConfig.textColor;
+            const legendColor = chartConfig["color"] || mainConfig["textColor"];
             if (priceValue !== undefined) {
                 // candlestick case
                 if (isNaN(priceValue)) {
@@ -112,8 +114,8 @@
             legend.innerHTML = `
                 <div>
                     <p>
-                        <span style="color:${mainConfig.textColor}">${chartConfig.name}</span>
-                        <span style="color:${myColour}">${val}</span>
+                        <span style="color:${mainConfig["textColor"]}">${chartConfig["name"]}</span>
+                        <span style="color:${legendColor}">${val}</span>
                     </p>
                 </div>`;
         }
@@ -125,7 +127,7 @@
             return legend;
         };
 
-        const legend = createLegentDiv(chartConfig.legend_index)
+        const legend = createLegentDiv(chartConfig["legend_index"])
         chartContainer.appendChild(legend);
 
         setLegendText(legend)
@@ -146,7 +148,7 @@
                     .forEach((s, i) => {
                         const subChart = createChartSeries(s.type, chart, s.config)
                         subChart.setData(s.series);
-                        if (s.config.show_legend) {
+                        if (s.config["show_legend"]) {
                             addLegentToChart(chart, mainConfig, subChart, s.config);
                         }
 
