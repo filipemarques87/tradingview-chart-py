@@ -5,7 +5,6 @@ import numpy as np
 import pytvchart as tvc
 
 
-
 if __name__ == '__main__':
 
     def date_converter(sdate):
@@ -30,7 +29,6 @@ if __name__ == '__main__':
 
     a = len(sma20) * [275]
 
-
     tvc.plot_candlestick(ohlc, name='BTCUSDT', date_format='%b %d %Y')
     tvc.plot_line(sma20, name='SMA 20')
     tvc.plot_line(sma50)
@@ -39,17 +37,14 @@ if __name__ == '__main__':
     tvc.plot_volume(ohlc['volume'])
     tvc.plot_event('Dec 02 2011', '314', type='sell')
     tvc.plot_event('Sep 14 2011', '366', type='buy')
-    tvc.plot_event('Sep 07 2011', 'outras cenas')
-    tvc.plot_event('Jan 04 2010', 'outras cenas')
+    tvc.plot_event('Sep 07 2011', 'another event')
 
     tvc.figure(theme='dark')
     tvc.plot_candlestick(ohlc.values, date_format='%b %d %Y')
     tvc.plot_line(sma20.values)
     tvc.plot_line(sma50.values)
-    tvc.plot_event('Dec 02 2011', '314', type='sell',size=3)
+    tvc.plot_event('Dec 02 2011', '314', type='sell', size=3)
     tvc.plot_event('Sep 14 2011', '366', type='buy')
-    tvc.plot_event('Sep 07 2011', 'outras cenas')
-    tvc.plot_event('Jan 04 2010', 'outras cenas')
-
+    tvc.plot_event('Sep 07 2011', 'another event')
 
     tvc.show()
