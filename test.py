@@ -30,7 +30,6 @@ if __name__ == '__main__':
 
     a = len(sma20) * [275]
 
-    print('1111111111111')
 
     tvc.plot_candlestick(ohlc, name='BTCUSDT', date_format='%b %d %Y')
     tvc.plot_line(sma20, name='SMA 20')
@@ -43,15 +42,9 @@ if __name__ == '__main__':
     tvc.plot_event('Sep 07 2011', 'outras cenas')
     tvc.plot_event('Jan 04 2010', 'outras cenas')
 
-    # tvc.figure()
-    # tvc.plot_candlestick(ohlc.values, date_format='%b %d %Y')
-    # tvc.plot_line(sma20.values)
-    # tvc.plot_line(sma50.values)
-
-    print('22222222222')
+    tvc.figure(theme='dark')
+    tvc.plot_candlestick(ohlc.values, date_format='%b %d %Y')
+    tvc.plot_line(sma20.values)
+    tvc.plot_line(sma50.values)
 
     tvc.show()
-
-    #plot(ohlc.values, sma20)
-
-    print('asdasd')

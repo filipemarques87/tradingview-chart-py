@@ -118,17 +118,17 @@ def plot_candlestick(
         done but this implies that the time is a unix timestamp
     show_legend: bool, default: True
         True to show the legend of this timeseries, false otherwise.
-    up_colour: str
-        Colour of the candle when the close price is greater than the open
+    up_color: str
+        color of the candle when the close price is greater than the open
         price.
-    down_colour: str
-        Colour of the candle when the open price is greater than the close
+    down_color: str
+        color of the candle when the open price is greater than the close
         price.
-    wick_up_colour: str
-        Colour of the candle wick when the close price is greater than the open
+    wick_up_color: str
+        color of the candle wick when the close price is greater than the open
         price.
-    wick_down_colour: str
-        Colour of the candle wick when the open price is greater than the close
+    wick_down_color: str
+        color of the candle wick when the open price is greater than the close
         price.
 
     Raises
@@ -169,16 +169,16 @@ def plot_candlestick(
     tv_series = TradingViewSeries(
         ohlc_series, 'ohlc', name=name,
         show_legend=show_legend, legend_index=0, date_format=date_format,
-        up_colour=cs_theme['up_colour'],
-        down_colour=cs_theme['down_colour'],
-        wick_up_colour=cs_theme['wick_up_colour'],
-        wick_down_colour=cs_theme['wick_down_colour'])
+        up_color=cs_theme['up_color'],
+        down_color=cs_theme['down_color'],
+        wick_up_color=cs_theme['wick_up_color'],
+        wick_down_color=cs_theme['wick_down_color'])
 
     current_tvchart_figure.add_series(tv_series)
 
 
 def plot_line(
-    np_line_series, name=None, colour=None, show_legend=True
+    np_line_series, name=None, color=None, show_legend=True
 ):
     """
     Plots a single line.
@@ -191,8 +191,8 @@ def plot_line(
         only 1 column
     name: str, optional
         Name of the time line series. The default value is 'Line {index}'
-    colour: str
-        Colour of the line. If it is not goven then uses the colour from the
+    color: str
+        color of the line. If it is not goven then uses the color from the
         theme COLOR_PALLET
     show_legend: bool
         True to show the legend of this timeseries, false otherwise. Default
@@ -228,11 +228,11 @@ def plot_line(
 
     # get correct line color if not set
     cs_theme = THEMES[current_tvchart_figure.theme]['line_chart']
-    colour_pallet = cs_theme['colour_pallet']
-    if colour is None:
+    color_pallet = cs_theme['color_pallet']
+    if color is None:
         index = len(
             [s for s in current_tvchart_figure.series if s.type == 'line'])
-        colour = colour_pallet[index % len(colour_pallet)]
+        color = color_pallet[index % len(color_pallet)]
 
     legend_index = len(
         [s for s in current_tvchart_figure.series if s.config['show_legend']])
@@ -241,7 +241,7 @@ def plot_line(
         name = f'Line {index + 1}'
 
     tv_series = TradingViewSeries(
-        line_series, 'line', name=name, colour=colour, show_legend=show_legend,
+        line_series, 'line', name=name, color=color, show_legend=show_legend,
         legend_index=legend_index)
 
     current_tvchart_figure.add_series(tv_series)
@@ -259,10 +259,10 @@ def plot_volume(np_volume_series, name='Vol', show_legend=True):
         only 1 column
     name: str
         Name of the time line series. The default value is Vol
-    colour_up: str
-        Colour of the bar when the close price is greater than the open price.
-    colour_down: str
-        Colour of the bar when the open price is greater than the close price.
+    color_up: str
+        color of the bar when the close price is greater than the open price.
+    color_down: str
+        color of the bar when the open price is greater than the close price.
     show_legend: bool
         True to show the legend of this timeseries, false otherwise. Default
         value is True
@@ -292,13 +292,13 @@ def plot_volume(np_volume_series, name='Vol', show_legend=True):
             "{len(volume_series)} != {len(ohlc_series)}')
 
     cs_theme = THEMES[current_tvchart_figure.theme]['volume_chart']
-    colour_up = cs_theme['colour_up']
-    colour_down = cs_theme['colour_down']
+    color_up = cs_theme['color_up']
+    color_down = cs_theme['color_down']
 
     volume_series = [{
         'time': row[0]['time'],
         'value': row[1],
-        'color': colour_up if row[0]['open'] < row[0]['close'] else colour_down}
+        'color': color_up if row[0]['open'] < row[0]['close'] else color_down}
         for row in zip(ohlc_series, volume_series) if not np.isnan(row[1])]
 
     legend_index = len(
@@ -338,9 +338,9 @@ def plot_event(
     type: str, optional
         Type of the event. The possible values are: buy or sell. If its value
         is buy the follow configuration is used: position=belowBar,
-        shape=arrowUp, colour=#e91e63 and text start with 'Sell @'. If it
+        shape=arrowUp, color=#e91e63 and text start with 'Sell @'. If it
         value is but then the following configuration is used:
-        position=aboveBar, shape=arrowUp, colour=#2196F3 and text start with
+        position=aboveBar, shape=arrowUp, color=#2196F3 and text start with
         'Buy @'
 
     Raises
@@ -386,7 +386,7 @@ def show():
         webview_api = WebviewApi(figure)
         window = webview.create_window(title, 'pytvchart/web/index.html',
                                        js_api=webview_api)
-    webview.start(debug=True)
+    webview.start(debug=False)
 
 
 def figure(id=None, title='', theme='light'):

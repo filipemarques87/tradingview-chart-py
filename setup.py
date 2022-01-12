@@ -7,7 +7,6 @@ setup(
     description='',
     author='Filipe Marques',
     author_email='ft2m1987@gmal.com',
-    packages=['pytvchart'],  # same as name
-    # external packages as dependencies
+    packages=['pytvchart'],
     install_requires=['pywebview', 'numpy'],
 )
